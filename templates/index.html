@@ -1,0 +1,76 @@
+{% extends 'chat.html' %}
+
+{% block head %}
+
+{% endblock %}
+{% block body %}
+<div class="chat-container">
+        <h1>Bookie.com</h1>
+        <div id="chat-box">
+            <div class="bot-message">
+                <strong>BookBot:</strong> Hello! Ask me anything about books.
+            </div>
+        </div>
+        <div class="input-container">
+            <input type="text" id="user-input" name='name' placeholder="Ask about books..." />
+            <button id="send-btn">Send</button>
+        </div>
+    </div>
+<script>
+    document.getElementById('send-btn').addEventListener('click', function() {
+        let userInput = document.getElementById('user-input').value;
+        if (userInput.trim() !== "") {
+            let chatBox = document.getElementById('chat-box');
+
+            // Append user's message on the right
+            let userMessage = document.createElement('div');
+            userMessage.classList.add('user-message');
+            userMessage.innerHTML = "<strong>You:</strong> " + userInput;
+            chatBox.appendChild(userMessage);
+
+            // Scroll to bottom
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // Clear input
+            document.getElementById('user-input').value = "";
+
+            // Prepare the payload for the POST request
+            let payload = {
+                query: userInput
+            };
+
+            // Send the query to the backend using fetch API
+            fetch('/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            })
+            .then(response => response.json())  // Parse the JSON response
+            .then(data => {
+                // Display the bot's response in the chat box
+                let botResponse = document.createElement('div');
+                botResponse.classList.add('bot-message');
+                if (data.status === "success") {
+                    botResponse.innerHTML = "<strong>BookBot:</strong> " + data.response;
+                } else {
+                    botResponse.innerHTML = "<strong>BookBot:</strong> Oops! Something went wrong.";
+                }
+                chatBox.appendChild(botResponse);
+                chatBox.scrollTop = chatBox.scrollHeight;
+            })
+            .catch(error => {
+                // Handle errors
+                let botResponse = document.createElement('div');
+                botResponse.classList.add('bot-message');
+                botResponse.innerHTML = "<strong>BookBot:</strong> Error: Unable to fetch response.";
+                chatBox.appendChild(botResponse);
+                chatBox.scrollTop = chatBox.scrollHeight;
+                console.error('Error:', error);
+            });
+        }
+    });
+</script>
+
+{% endblock %}
